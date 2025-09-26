@@ -6,6 +6,7 @@ function App() {
   const [extensionData, setExtensionData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saveSuccess, setSaveSuccess] = useState(false); // Add success state
 
   useEffect(() => {
     view.getContext().then((context) => {
@@ -21,13 +22,32 @@ function App() {
 
   const formValueSubmit = useCallback(async (value: any) => {
     try {
-      const payload = value ? JSON.stringify(value) : null;
-      return await view.submit(payload);
+      // Create a completely clean object to avoid circular references
+      const cleanValue = value ? {
+        category: value.category,
+        subcategory: value.subcategory,
+        item: value.item
+      } : null;
+      
+      const payload = cleanValue ? JSON.stringify(cleanValue) : null;
+      const result = await view.submit(payload);
+      
+      // Provide user feedback that save was successful
+      console.log('Field saved successfully:', cleanValue);
+      setSaveSuccess(true);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSaveSuccess(false);
+      }, 3000);
+      
+      return result;
     } catch (e) {
       setError("Couldn't save the custom field");
+      setSaveSuccess(false);
       console.error('Submit error:', e);
     }
-  }, [view]);
+  }, []);
 
   // Parse the initial field value
   const initialFieldValue = useMemo(() => {
@@ -96,16 +116,30 @@ function App() {
     }));
   }, [items]);
 
+  const isIssueView = extensionData?.extension?.renderContext && extensionData.extension.renderContext === 'issue-view';
+
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    await formValueSubmit({
-      category: categoryValue,
-      subcategory: subcategoryValue,
-      item: itemValue
-    });
+    // Create a completely clean object with only the field values
+    const submitValue = {
+      category: categoryValue || null,
+      subcategory: subcategoryValue || null,
+      item: itemValue || null
+    };
+    
+    // Show a temporary success message
+    setError(null); // Clear any previous errors
+    const result = await formValueSubmit(submitValue);
+    
+    // In non-issue-view contexts, we might want to close the form after successful save
+    if (!isIssueView && result) {
+      try {
+        await view.close();
+      } catch (error) {
+        console.log('Could not close view after save');
+      }
+    }
   }, [categoryValue, subcategoryValue, itemValue, formValueSubmit]);
-
-  const isIssueView = extensionData?.extension?.renderContext && extensionData.extension.renderContext === 'issue-view';
 
   if (loading) {
     return <div style={{ padding: '12px' }}>Loading...</div>;
@@ -120,6 +154,11 @@ function App() {
       {error && (
         <div style={{ color: 'red', marginBottom: '12px', padding: '8px', backgroundColor: '#ffebee' }}>
           {error}
+        </div>
+      )}
+      {saveSuccess && (
+        <div style={{ color: 'green', marginBottom: '12px', padding: '8px', backgroundColor: '#e8f5e9' }}>
+          Field saved successfully!
         </div>
       )}
       
@@ -229,7 +268,18 @@ function App() {
             </button>
             <button 
               type="button"
-              onClick={view.close}
+              onClick={async () => {
+                try {
+                  // Try to close the view, but catch any errors
+                  await view.close();
+                } catch (error) {
+                  // If closing fails, just clear the form
+                  console.log('View could not be closed, clearing form instead');
+                  setCategoryValue(null);
+                  setSubcategoryValue(null);
+                  setItemValue(null);
+                }
+              }}
               style={{ 
                 padding: '8px 16px', 
                 backgroundColor: '#f4f5f7', 

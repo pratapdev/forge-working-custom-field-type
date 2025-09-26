@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "build": "node scripts/build.mjs",
-    "watch": "node scripts/build.mjs --watch"
+    "watch": "node scripts/build.mjs --watch",
+    "install": "npm run build && forge deploy && forge install --upgrade"
   },
   "devDependencies": {
     "esbuild": "0.21.5"
