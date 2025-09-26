@@ -1,0 +1,19 @@
+{
+  "name": "p-custom-field-multi-cascade",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "watch": "node scripts/build.mjs --watch"
+  },
+  "devDependencies": {
+    "esbuild": "0.21.5"
+  },
+  "dependencies": {
+    "@forge/api": "3.0.0",
+    "@forge/bridge": "^5.5.0",
+    "@forge/resolver": "1.6.11",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  }
+}

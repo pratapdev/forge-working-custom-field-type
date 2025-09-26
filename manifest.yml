@@ -1,0 +1,34 @@
+app:
+  id: ari:cloud:ecosystem::app/0614da52-970a-45d5-b6d5-8eb9c4b01227
+  runtime:
+    name: nodejs20.x
+
+modules:
+  jira:customFieldType:
+    - key: multi-cascade-type
+      name: Multi-level Cascade Type
+      description: A 3-level cascading dropdown (Category → Subcategory → Item)
+      type: string
+      formatter:
+        expression: "value ? `${value.category || ''}${value.subcategory ? ` > ${value.subcategory}` : ''}${value.item ? ` > ${value.item}` : ''}` : ''"
+      edit:
+        resource: ui
+        experience:
+          - issue-view
+          - issue-create
+          - issue-transition
+          - issue-panel
+
+  function:
+    - key: resolvers
+      handler: index.run
+
+resources:
+  - key: ui
+    path: static/dist
+
+permissions:
+  scopes:
+    - storage:app
+    - read:jira-work
+    - write:jira-work

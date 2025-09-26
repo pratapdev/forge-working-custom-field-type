@@ -1,0 +1,35 @@
+modules:
+  jira:customFieldType:
+    - key: forge-cust-configurable-validation
+      name: forge-cust
+      description: A basic custom field with a configurable validation.
+      type: string
+      contextConfig:
+        resource: main
+        layout: basic
+      edit:
+        resource: edit
+        experience:
+          - issue-create
+          - issue-transition
+          - issue-view
+          - portal-request
+        validation:
+          expression: value == null || !!value.match(configuration?.regexp ||
+            "^[A-Za-z]+$")
+          errorMessage: The value is invalid
+resources:
+  - key: main
+    path: static/configurable-validation/build
+  - key: edit
+    path: static/edit/build
+permissions:
+  content:
+    styles:
+      - unsafe-inline
+app:
+  runtime:
+    name: nodejs22.x
+    memoryMB: 256
+    architecture: arm64
+  id: ari:cloud:ecosystem::app/166a1309-62b9-4c3d-91c9-721fd6f5d147

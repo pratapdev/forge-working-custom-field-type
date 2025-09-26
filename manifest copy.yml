@@ -1,0 +1,41 @@
+app:
+  id: ari:cloud:ecosystem::app/0614da52-970a-45d5-b6d5-8eb9c4b01227
+  name: p-custom-field-multi-cascade
+  runtime:
+    name: nodejs20.x
+
+modules:
+  jira:customFieldType:
+    - key: multi-cascade-type
+      name: Multi-level Cascade Type
+      description: A 3-level cascading dropdown (Category → Subcategory → Item)
+      type: string
+      view:
+        resource: ui
+        render: native
+        experience:
+          - issue-view
+      edit:
+        resource: ui
+        render: native
+        experience:
+          - issue-view
+          - issue-create
+          - issue-transition
+      contextConfig:
+        resource: ui
+        render: native
+
+  function:
+    - key: resolvers
+      handler: index.run
+
+resources:
+  - key: ui
+    path: static/dist
+
+permissions:
+  scopes:
+    - storage:app
+    - read:jira-work
+    - write:jira-work
