@@ -243,6 +243,23 @@ function App() {
             </button>
           </div>
         )}
+        {isIssueView && (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button 
+              type="submit" 
+              style={{ 
+                padding: '8px 16px', 
+                backgroundColor: '#0052cc', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '3px',
+                cursor: 'pointer'
+              }}
+            >
+              Save
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );
