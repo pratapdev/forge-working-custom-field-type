@@ -59,6 +59,67 @@ This document contains notes about the development, issues encountered, and solu
 **Files Modified**:
 - `static/src/ui/App.tsx` - Added saveSuccess state and UI feedback
 
+## Dynamic Dropdown Implementation
+
+### 6. Dynamic Dropdown Generation
+**Problem**: Dropdowns were hardcoded, making it difficult to modify the number or configuration of fields.
+
+**Solution**:
+- Implemented dynamic dropdown generation based on JSON data structure
+- Created flexible data structure that defines fields, dependencies, and options
+- Added support for any number of dropdowns with proper cascading behavior
+
+**Key Features**:
+- Dynamic UI generation from JSON configuration
+- Flexible dependency management between fields
+- Automatic clearing of dependent fields when parent values change
+- Support for required field indicators
+- Scalable architecture that supports different numbers of dropdowns
+
+**Files Modified**:
+- `src/data.ts` - Created dynamic data structure
+- `static/src/ui/App.tsx` - Implemented dynamic dropdown generation
+- `src/index.ts` - Updated to use dynamic data
+- `scripts/build.mjs` - Added JSON loader support
+
+### 7. Data Structure Design
+**Flexible Configuration**:
+- Fields array defines each dropdown with id, label, type, and required status
+- Dependency management through dependsOn property
+- OptionData object provides dynamic options based on parent selections
+- Support for nested cascading relationships
+
+**Sample Structure**:
+```json
+{
+  "fields": [
+    {
+      "id": "category",
+      "label": "Category",
+      "type": "dropdown",
+      "required": true,
+      "options": [...]
+    },
+    {
+      "id": "subcategory",
+      "label": "Subcategory",
+      "type": "dropdown",
+      "required": true,
+      "options": [],
+      "dependsOn": "category"
+    }
+  ],
+  "optionData": {
+    "parentValue": [
+      {
+        "value": "childValue",
+        "label": "Child Label"
+      }
+    ]
+  }
+}
+```
+
 ## Key Implementation Details
 
 ### Form Submission
@@ -91,9 +152,13 @@ The app now works correctly in all contexts:
 3. **User Feedback**: Clear success/error messages are displayed
 4. **Context Awareness**: Behavior adapts to different Jira contexts
 5. **Graceful Degradation**: Fallback behaviors when operations fail
+6. **Dynamic Configuration**: Flexible data-driven UI generation
+7. **Scalable Architecture**: Support for variable numbers of dropdowns
 
 ## Future Enhancements (Planned)
 1. Add clear buttons for individual dropdowns
 2. Add complete form reset button
 3. Improve UI styling to match Jira's design language
 4. Add validation for required fields
+5. Support for different field types beyond dropdowns
+6. External configuration management for dynamic data updates

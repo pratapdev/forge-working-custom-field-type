@@ -1,6 +1,6 @@
 import Resolver from '@forge/resolver';
 import { storage } from '@forge/api';
-import { CASCADE_DATA } from './data';
+import { DYNAMIC_CASCADE_DATA } from './data';
 import { validateCascadingField, FieldValue } from './validation';
 
 // Define proper interfaces for type safety
@@ -187,7 +187,7 @@ resolver.define('clear', async (req: ResolverRequest): Promise<SaveResponse> => 
 });
 
 resolver.define('getData', async () => {
-	return CASCADE_DATA;
+	return DYNAMIC_CASCADE_DATA;
 });
 
 export const run = resolver.getDefinitions();

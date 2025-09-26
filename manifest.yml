@@ -6,11 +6,11 @@ app:
 modules:
   jira:customFieldType:
     - key: multi-cascade-type
-      name: Multi-level Cascade Type
-      description: A 3-level cascading dropdown (Category → Subcategory → Item)
+      name: Dynamic Multi-level Cascade Type
+      description: A dynamic cascading dropdown field that can be configured with JSON data
       type: string
       formatter:
-        expression: "value ? `${value.category || ''}${value.subcategory ? ` > ${value.subcategory}` : ''}${value.item ? ` > ${value.item}` : ''}` : ''"
+        expression: "value ? Object.values(value).filter(v => v).join(' > ') : ''"
       edit:
         resource: ui
         experience:

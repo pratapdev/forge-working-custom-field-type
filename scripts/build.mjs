@@ -19,7 +19,7 @@ const options = {
 	format: 'iife',
 	platform: 'browser',
 	outdir,
-	loader: { '.png': 'file', '.svg': 'file' },
+	loader: { '.png': 'file', '.svg': 'file', '.json': 'json' },
 	minify: !isWatch,
 	sourcemap: isWatch,
 };
