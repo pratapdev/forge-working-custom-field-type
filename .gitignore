@@ -2,3 +2,5 @@ node_modules
 build
 dist
 static/dist
+build-json-admin-panel
+forge-custom-field-working

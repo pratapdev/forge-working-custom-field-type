@@ -1,23 +1,111 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { view } from '@forge/bridge';
-import { DYNAMIC_CASCADE_DATA } from '../../../src/data';
+import { view, invoke } from '@forge/bridge';
+
+// Default configuration
+const defaultConfig = {
+  fields: [
+    { id: 'category', label: 'Category', required: true },
+    { id: 'subcategory', label: 'Subcategory', required: true, dependsOn: 'category' },
+    { id: 'item', label: 'Item', required: true, dependsOn: 'subcategory' }
+  ],
+  optionData: {
+    category: [
+      { value: 'Hardware', label: 'Hardware' },
+      { value: 'Software', label: 'Software' },
+      { value: 'Network', label: 'Network' }
+    ],
+    Hardware: [
+      { value: 'Laptop', label: 'Laptop' },
+      { value: 'Desktop', label: 'Desktop' },
+      { value: 'Server', label: 'Server' }
+    ],
+    Software: [
+      { value: 'OS', label: 'OS' },
+      { value: 'Application', label: 'Application' }
+    ],
+    Network: [
+      { value: 'Router', label: 'Router' },
+      { value: 'Switch', label: 'Switch' }
+    ],
+    'Hardware > Laptop': [
+      { value: 'Dell', label: 'Dell' },
+      { value: 'HP', label: 'HP' },
+      { value: 'Lenovo', label: 'Lenovo' }
+    ],
+    'Hardware > Desktop': [
+      { value: 'Custom Build', label: 'Custom Build' },
+      { value: 'Prebuilt', label: 'Prebuilt' }
+    ],
+    'Hardware > Server': [
+      { value: 'Dell', label: 'Dell' },
+      { value: 'HP', label: 'HP' },
+      { value: 'IBM', label: 'IBM' }
+    ],
+    'Software > OS': [
+      { value: 'Windows', label: 'Windows' },
+      { value: 'Linux', label: 'Linux' },
+      { value: 'MacOS', label: 'MacOS' }
+    ],
+    'Software > Application': [
+      { value: 'Office Suite', label: 'Office Suite' },
+      { value: 'Browser', label: 'Browser' },
+      { value: 'Editor', label: 'Editor' }
+    ],
+    'Network > Router': [
+      { value: 'Cisco', label: 'Cisco' },
+      { value: 'Juniper', label: 'Juniper' }
+    ],
+    'Network > Switch': [
+      { value: 'Cisco', label: 'Cisco' },
+      { value: 'HP', label: 'HP' }
+    ]
+  }
+};
 
 function App() {
-  const [extensionData, setExtensionData] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [extensionData, setExtensionData] = useState(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [dynamicData, setDynamicData] = useState(defaultConfig);
 
   useEffect(() => {
-    view.getContext().then((context) => {
-      console.log('Context received:', JSON.stringify(context, null, 2));
-      setExtensionData(context);
-      setLoading(false);
-    }).catch((err) => {
-      console.error('Failed to get context:', err);
-      setError("Couldn't load field context");
-      setLoading(false);
-    });
+    const loadData = async () => {
+      try {
+        console.log('Starting to load data...');
+        // Get context first
+        const context = await view.getContext();
+        console.log('Context received:', JSON.stringify(context, null, 2));
+        setExtensionData(context);
+        
+        // Try to get config from storage via resolver
+        try {
+          console.log('Attempting to get config from field resolver...');
+          const configResult: any = await invoke('getConfig');
+          console.log('Config result:', configResult);
+          if (configResult && configResult.success && configResult.data) {
+            setDynamicData(configResult.data);
+            console.log('Using config from storage');
+          } else {
+            // Use the default configuration if we can't get it from storage
+            setDynamicData(defaultConfig);
+            console.log('Using default config');
+          }
+        } catch (configError: any) {
+          console.log('Could not invoke getConfig, using default config:', configError.message);
+          // Use the default configuration if we can't get it from storage
+          setDynamicData(defaultConfig);
+          console.log('Using default config');
+        }
+      } catch (err: any) {
+        console.error('Failed to load data:', err);
+        setError("Couldn't load field data: " + err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
   }, []);
 
   const formValueSubmit = useCallback(async (value: any) => {
@@ -40,7 +128,7 @@ function App() {
       }, 3000);
       
       return result;
-    } catch (e) {
+    } catch (e: any) {
       setError("Couldn't save the custom field");
       setSaveSuccess(false);
       console.error('Submit error:', e);
@@ -51,69 +139,96 @@ function App() {
   const initialFieldValue = useMemo(() => {
     if (!extensionData) return null;
     
-    const fieldValue = extensionData.extension?.fieldValue || extensionData.fieldValue;
+    const fieldValue = (extensionData as any).extension?.value || (extensionData as any).value || (extensionData as any).extension?.fieldValue || (extensionData as any).fieldValue;
+    console.log('Processing fieldValue:', fieldValue);
     if (typeof fieldValue === 'string' && fieldValue.trim()) {
       try {
-        return JSON.parse(fieldValue);
+        const parsed = JSON.parse(fieldValue);
+        console.log('Parsed fieldValue:', parsed);
+        return parsed;
       } catch (e) {
         console.error('Failed to parse field value:', e);
         return null;
       }
     }
+    console.log('Returning fieldValue as is:', fieldValue);
     return fieldValue || null;
   }, [extensionData]);
 
   // Initialize state for all dynamic fields
-  const [fieldValues, setFieldValues] = useState<Record<string, string | null>>(() => {
+  const [fieldValues, setFieldValues] = useState(() => {
     const initialValues: Record<string, string | null> = {};
-    DYNAMIC_CASCADE_DATA.fields.forEach(field => {
-      initialValues[field.id] = (initialFieldValue as Record<string, any>)?.[field.id] || null;
-    });
+    if (dynamicData?.fields) {
+      (dynamicData as any).fields.forEach((field: any) => {
+        initialValues[field.id] = (initialFieldValue as Record<string, any>)?.[field.id] || null;
+      });
+    }
+    console.log('Initialized fieldValues:', initialValues);
     return initialValues;
   });
 
   // Update state when initial value changes
   useEffect(() => {
-    if (initialFieldValue) {
+    if (initialFieldValue && dynamicData?.fields) {
       const newValues: Record<string, string | null> = {};
-      DYNAMIC_CASCADE_DATA.fields.forEach(field => {
+      (dynamicData as any).fields.forEach((field: any) => {
         newValues[field.id] = (initialFieldValue as Record<string, any>)?.[field.id] || null;
       });
+      console.log('Updating fieldValues with initial value:', newValues);
       setFieldValues(newValues);
     }
-  }, [initialFieldValue]);
+  }, [initialFieldValue, dynamicData]);
 
   // Get options for a specific field based on dependencies
   const getFieldOptions = useCallback((fieldId: string) => {
-    const field = DYNAMIC_CASCADE_DATA.fields.find(f => f.id === fieldId);
+    if (!dynamicData) return [];
+    
+    const field = (dynamicData as any).fields.find((f: any) => f.id === fieldId);
     if (!field) return [];
     
     // If this field doesn't depend on another field, return its direct options
     if (!field.dependsOn) {
-      return field.options || [];
+      return (dynamicData as any).optionData[field.id] || [];
     }
     
     // If this field depends on another field, get options based on the parent field's value
-    const parentValue = fieldValues[field.dependsOn];
+    const parentValue = (fieldValues as Record<string, string | null>)[field.dependsOn];
     if (!parentValue) return [];
     
-    // Look up options in the optionData based on parent value
-    return DYNAMIC_CASCADE_DATA.optionData[parentValue as keyof typeof DYNAMIC_CASCADE_DATA.optionData] || [];
-  }, [fieldValues]);
+    // For fields that depend on a field which itself depends on another field,
+    // we need to construct the key using all parent values
+    let lookupKey = parentValue;
+    
+    // Check if the parent field also has a dependency
+    const parentField = (dynamicData as any).fields.find((f: any) => f.id === field.dependsOn);
+    if (parentField && parentField.dependsOn) {
+      // This is a third-level field, so we need to construct the key with all parent values
+      const grandParentValue = (fieldValues as Record<string, string | null>)[parentField.dependsOn];
+      if (grandParentValue) {
+        lookupKey = `${grandParentValue} > ${parentValue}`;
+      }
+    }
+    
+    // Look up options in the optionData based on the constructed key
+    const dynamicDataAny = dynamicData as any;
+    return dynamicDataAny.optionData[lookupKey] || [];
+  }, [fieldValues, dynamicData]);
 
   // Handle field value changes
   const handleFieldChange = useCallback((fieldId: string, value: string | null) => {
     setFieldValues(prev => {
-      const newValues = { ...prev, [fieldId]: value };
+      const newValues = { ...(prev as Record<string, string | null>), [fieldId]: value };
       
       // Reset dependent fields
-      const fieldIndex = DYNAMIC_CASCADE_DATA.fields.findIndex(f => f.id === fieldId);
-      if (fieldIndex !== -1) {
-        // Reset all fields that come after this one
-        for (let i = fieldIndex + 1; i < DYNAMIC_CASCADE_DATA.fields.length; i++) {
-          const dependentField = DYNAMIC_CASCADE_DATA.fields[i];
-          if (dependentField.dependsOn === fieldId) {
-            newValues[dependentField.id] = null;
+      if (dynamicData?.fields) {
+        const fieldIndex = (dynamicData as any).fields.findIndex((f: any) => f.id === fieldId);
+        if (fieldIndex !== -1) {
+          // Reset all fields that come after this one
+          for (let i = fieldIndex + 1; i < (dynamicData as any).fields.length; i++) {
+            const dependentField = (dynamicData as any).fields[i];
+            if (dependentField.dependsOn === fieldId) {
+              newValues[dependentField.id] = null;
+            }
           }
         }
       }
@@ -122,23 +237,23 @@ function App() {
     });
     
     // Auto-submit in issue view (if desired)
-    const isIssueView = extensionData?.extension?.renderContext && extensionData.extension.renderContext === 'issue-view';
+    const isIssueView = (extensionData as any)?.extension?.renderContext && (extensionData as any).extension.renderContext === 'issue-view';
     if (isIssueView) {
       // For now, we'll keep the explicit save button approach
     }
-  }, [extensionData]);
+  }, [extensionData, dynamicData]);
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: any) => {
     e.preventDefault();
     // Create a clean object with all field values
-    const submitValue = { ...fieldValues };
+    const submitValue = { ...(fieldValues as Record<string, string | null>) };
     
     // Show a temporary success message
     setError(null); // Clear any previous errors
     const result = await formValueSubmit(submitValue);
     
     // In non-issue-view contexts, we might want to close the form after successful save
-    const isIssueView = extensionData?.extension?.renderContext && extensionData.extension.renderContext === 'issue-view';
+    const isIssueView = (extensionData as any)?.extension?.renderContext && (extensionData as any).extension.renderContext === 'issue-view';
     if (!isIssueView && result) {
       try {
         await view.close();
@@ -148,7 +263,7 @@ function App() {
     }
   }, [fieldValues, formValueSubmit, extensionData]);
 
-  const isIssueView = extensionData?.extension?.renderContext && extensionData.extension.renderContext === 'issue-view';
+  const isIssueView = (extensionData as any)?.extension?.renderContext && (extensionData as any).extension.renderContext === 'issue-view';
 
   if (loading) {
     return <div style={{ padding: '12px' }}>Loading...</div>;
@@ -156,6 +271,11 @@ function App() {
 
   if (!extensionData) {
     return <div style={{ padding: '12px' }}>Loading field data...</div>;
+  }
+
+  // Show loading message if we have extension data but not config yet
+  if (!dynamicData) {
+    return <div style={{ padding: '12px' }}>Loading configuration...</div>;
   }
 
   return (
@@ -172,9 +292,9 @@ function App() {
       )}
       
       <form onSubmit={handleSubmit}>
-        {DYNAMIC_CASCADE_DATA.fields.map((field, index) => {
+        {(dynamicData as any).fields.map((field: any, index: number) => {
           const options = getFieldOptions(field.id);
-          const isDisabled = field.dependsOn ? !fieldValues[field.dependsOn] : false;
+          const isDisabled = field.dependsOn ? !(fieldValues as Record<string, string | null>)[field.dependsOn] : false;
           
           return (
             <div key={field.id} style={{ marginBottom: '16px' }}>
@@ -183,7 +303,7 @@ function App() {
                 {field.required && <span style={{ color: 'red' }}> *</span>}
               </label>
               <select
-                value={fieldValues[field.id] || ''}
+                value={(fieldValues as Record<string, string | null>)[field.id] || ''}
                 onChange={(e) => handleFieldChange(field.id, e.target.value || null)}
                 disabled={isDisabled}
                 style={{ 
@@ -230,9 +350,11 @@ function App() {
                   // If closing fails, just clear the form
                   console.log('View could not be closed, clearing form instead');
                   const resetValues: Record<string, string | null> = {};
-                  DYNAMIC_CASCADE_DATA.fields.forEach(field => {
-                    resetValues[field.id] = null;
-                  });
+                  if (dynamicData?.fields) {
+                    (dynamicData as any).fields.forEach((field: any) => {
+                      resetValues[field.id] = null;
+                    });
+                  }
                   setFieldValues(resetValues);
                 }
               }}

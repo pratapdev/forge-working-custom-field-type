@@ -1,0 +1,369 @@
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  color: #172B4D;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #E1E5EA;
+}
+
+.header h1 {
+  margin: 0;
+  color: #0052CC;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.save-button {
+  background: #0052CC;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.save-button:hover:not(:disabled) {
+  background: #0065FF;
+}
+
+.save-button:disabled {
+  background: #A5ADBA;
+  cursor: not-allowed;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #6B778C;
+}
+
+.error-message {
+  background: #FFEBE6;
+  border: 1px solid #FF5630;
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 20px;
+  color: #BF2600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.error-message button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #BF2600;
+}
+
+.content {
+  background: white;
+  border: 1px solid #E1E5EA;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.toolbar {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #E1E5EA;
+}
+
+.add-button {
+  background: #36B37E;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-button:hover {
+  background: #00875A;
+}
+
+.tree-view {
+  margin-top: 20px;
+}
+
+.tree-node {
+  margin: 8px 0;
+}
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  border: 1px solid transparent;
+}
+
+.tree-item:hover {
+  background: #F4F5F7;
+  border-color: #E1E5EA;
+}
+
+.tree-item.category {
+  background: #E6FCFF;
+  border-color: #00B8D9;
+  font-weight: 600;
+}
+
+.tree-item.subcategory {
+  background: #EAE6FF;
+  border-color: #6554C0;
+  font-weight: 500;
+}
+
+.tree-item.array-item {
+  background: #FFF0B3;
+  border-color: #FFAB00;
+}
+
+.tree-item.subitem {
+  background: #E3FCEF;
+  border-color: #36B37E;
+  margin-left: 20px;
+}
+
+.tree-toggle {
+  cursor: pointer;
+  margin-right: 8px;
+  font-family: monospace;
+  font-size: 12px;
+  color: #6B778C;
+  user-select: none;
+  width: 16px;
+  text-align: center;
+}
+
+.tree-key {
+  flex: 1;
+  font-weight: 500;
+  color: #172B4D;
+}
+
+.tree-value {
+  flex: 1;
+  color: #172B4D;
+}
+
+.tree-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.tree-item:hover .tree-actions {
+  opacity: 1;
+}
+
+.action-button {
+  background: none;
+  border: 1px solid #DFE1E6;
+  border-radius: 3px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.action-button.add {
+  color: #36B37E;
+  border-color: #36B37E;
+}
+
+.action-button.add:hover {
+  background: #36B37E;
+  color: white;
+}
+
+.action-button.edit {
+  color: #6554C0;
+  border-color: #6554C0;
+}
+
+.action-button.edit:hover {
+  background: #6554C0;
+  color: white;
+}
+
+.action-button.delete {
+  color: #FF5630;
+  border-color: #FF5630;
+}
+
+.action-button.delete:hover {
+  background: #FF5630;
+  color: white;
+}
+
+.tree-children {
+  margin-left: 32px;
+  border-left: 2px solid #E1E5EA;
+  padding-left: 16px;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 8px 24px rgba(23, 43, 77, 0.32);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #E1E5EA;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #172B4D;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6B778C;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  color: #172B4D;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #172B4D;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #DFE1E6;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #0052CC;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.cancel-button {
+  background: #F4F5F7;
+  color: #172B4D;
+  border: 1px solid #DFE1E6;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-button:hover {
+  background: #E4E6EA;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 10px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .tree-children {
+    margin-left: 16px;
+    padding-left: 8px;
+  }
+
+  .modal {
+    width: 95%;
+    margin: 20px;
+  }
+}
+
+/* Add this new styling for empty config message */
+.empty-config {
+  padding: 20px;
+  text-align: center;
+  background: #f0f8ff;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  color: #666;
+}
+
+.empty-config p {
+  margin: 10px 0;
+}

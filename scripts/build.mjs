@@ -1,36 +1,43 @@
-import { build, context } from 'esbuild';
-import { mkdir, cp } from 'node:fs/promises';
+import { build } from 'esbuild';
+import { cp } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const isWatch = process.argv.includes('--watch');
-
 const outdir = resolve(__dirname, '../static/dist');
 const srcDir = resolve(__dirname, '../static/src');
 
-await mkdir(outdir, { recursive: true });
+const adminOutdir = resolve(__dirname, '../static/admin-dist');
+const adminSrcDir = resolve(__dirname, '../static/admin-src');
 
 const options = {
-	entryPoints: [resolve(srcDir, 'index.tsx')],
-	bundle: true,
-	format: 'iife',
-	platform: 'browser',
-	outdir,
-	loader: { '.png': 'file', '.svg': 'file', '.json': 'json' },
-	minify: !isWatch,
-	sourcemap: isWatch,
+  entryPoints: [resolve(srcDir, 'index.tsx')],
+  bundle: true,
+  format: 'iife',
+  platform: 'browser',
+  outdir,
+  loader: { '.png': 'file', '.svg': 'file', '.json': 'json' },
+  minify: true,
 };
 
-if (isWatch) {
-	const ctx = await context(options);
-	await ctx.watch();
-	// Initial copy of index.html
-	await cp(resolve(srcDir, 'index.html'), resolve(outdir, 'index.html'));
-	console.log('Watching for changes...');
-} else {
-	await build(options);
-	await cp(resolve(srcDir, 'index.html'), resolve(outdir, 'index.html'));
-}
+const adminOptions = {
+  entryPoints: [resolve(adminSrcDir, 'index.tsx')],
+  bundle: true,
+  format: 'iife',
+  platform: 'browser',
+  outdir: adminOutdir,
+  loader: { '.png': 'file', '.svg': 'file', '.json': 'json', '.css': 'css' },
+  minify: true,
+};
+
+// Build both apps
+await build(options);
+await build(adminOptions);
+
+// Copy HTML files
+await cp(resolve(srcDir, 'index.html'), resolve(outdir, 'index.html'));
+await cp(resolve(adminSrcDir, 'index.html'), resolve(adminOutdir, 'index.html'));
+
+console.log('Built both apps and copied HTML files');
